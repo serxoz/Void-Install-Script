@@ -150,3 +150,5 @@ fi
 mv chroot.sh /mnt/
 chmod +x /mnt/chroot.sh
 chroot /mnt/ ./chroot.sh
+
+echo "Done!"
