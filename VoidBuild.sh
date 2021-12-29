@@ -1,3 +1,13 @@
+#!/bin/bash
+
+#CHECK PERMISSIONS
+
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root!" 
+   exit 1
+fi
+
+
 #SETUP
 
 
@@ -31,7 +41,7 @@ fi
 
 
 echo ""
-echo "Use a PACKAGES.txt? (List of packages in a file) (y/n)"
+echo "Use a packages.txt? (List of packages in a file) (y/n)"
 read -p "> " PACKAGES
 
 REPO=https://alpha.de.repo.voidlinux.org/current
@@ -44,6 +54,34 @@ if [ "$ARCH" != "x86_64" ] && [ "$ARCH" != "x86_64-musl" ] && [ "$ARCH" != "i686
 	echo "Invalid Architecture!"
 	exit 1
 fi
+
+echo ""
+echo "Locale? (en_US.UTF-8,en_GB.UTF-8,etc) 
+printf "> "
+read LOCALEFORINST
+
+echo ""
+echo "Hostname?"
+printf "> "
+read HOSTNAMEFORINST
+
+echo ""
+echo "Keymap? (uk,etc)"
+printf "> "
+read KEYMAPFORINST
+
+echo ""
+echo "Timezone? (Continent/City, eg:Europe/London)"
+printf "> "
+read TIMEZONEFORINST
+
+echo ""
+echo "Root password?"
+printf "> "
+read ROOTFORINST
+
+
+
 
 #FINAL CONFIRMATION
 
@@ -61,3 +99,54 @@ if [ "$CONFIRM" != "yes" ]; then
 fi
 
 echo "Jo mama"
+
+#FORMAT DISKS
+
+umount $DISK2INSTALL
+dd if=$DISK2INSTALL of=$DISK2INSTALL bs=512 count=1 conv=notrunc
+parted $DISK2INSTALL --script mklabel gpt
+parted $DISK2INSTALL --script mkpart primary fat32 1MB 512MB
+parted $DISK2INSTALL --script mkpart primary ext4 513MB 100%
+
+#MOUNT DISKS
+
+mount $($DISK2INSTALL"2") /mnt/
+mkdir -p /mnt/boot/efi/
+mount $($DISK2INSTALL"1") /mnt/boot/efi
+
+#INSTALL BASE
+if [ "$PACKAGES" == "y" ]
+then
+	XBPS_ARCH=$ARCH xbps-install -S -r /mnt -R "$REPO" base-system $(echo packages.txt)
+else
+	XBPS_ARCH=$ARCH xbps-install -S -r /mnt -R "$REPO" base-system
+fi
+
+#BIND MOUNTS AND DNS
+
+mount --rbind /sys /mnt/sys && mount --make-rslave /mnt/sys
+mount --rbind /dev /mnt/dev && mount --make-rslave /mnt/dev
+mount --rbind /proc /mnt/proc && mount --make-rslave /mnt/proc
+cp /etc/resolv.conf /mnt/etc/
+
+#CHROOT
+if [ "$ARCH" == "x86_64" ]
+then 
+	echo $("echo" $HOSTNAMEFORINST ">> /etc/hostname") >> chroot.sh
+	echo $("echo KEYMAP=" $KEYMAPFORINST ">> /etc/rc.conf") >> chroot.sh
+	echo $("echo TIMEZONE=" $TIMEZONEFORINST ">> /etc/rc.conf") >> chroot.sh
+	echo $("echo" $LOCALEFORINST ">> /etc/default/libc-locales") >> chroot.sh
+	echo $("echo xbps-reconfigure -f glibc-locales") >> chroot.sh
+	echo $("echo" $ROOTFORINST "| passwd --stdin") >> chroot.sh
+	echo $("echo $(cat /proc/mounts | grep -v -e proc -e sys -e tmpfs -e pts ) >> tempfstab ") >> chroot.sh
+	echo $("echo $(cat tempfstab | grep /boot/efi | awk '$6=$6"2"') >> tempfstab2") >> chroot.sh 
+	echo $("echo $(cat tempfstab | grep ext4 | awk '$6=$6"1"') >> tempfstab2") >> chroot.sh 
+	echo $("mv tempfstab2 /etc/fstab") >> chroot.sh 
+	echo $("xbps-install grub-x86_64-efi") >> chroot.sh
+	echo $("grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="Void"") >> chroot.sh 
+	echo $("xbps-reconfigure -fa") >> chroot.sh
+fi
+
+mv chroot.sh /mnt/
+chmod +x /mnt/chroot.sh
+chroot /mnt/ ./chroot.sh
