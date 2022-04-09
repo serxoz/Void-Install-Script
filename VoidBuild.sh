@@ -147,9 +147,10 @@ then
 	# echo 'echo $(cat /proc/mounts | grep -v -e proc -e sys -e tmpfs -e pts ) >> tempfstab ' >> chroot.sh
 	# echo 'echo $(cat tempfstab | grep /boot/efi | awk '$6=$6"2"') >> tempfstab2' >> chroot.sh 
 	# echo 'echo $(cat tempfstab | grep ext4 | awk '$6=$6"1"') >> tempfstab2' >> chroot.sh 
+	# echo 'cp tempfstab2 /etc/fstab' >> chroot.sh 
     echo 'echo "'$DISK2INSTALL'2 / ext4 rw,relatime 0 0" >> tempfstab' >> chroot.sh
     echo 'echo "'$DISK2INSTALL'1 /boot/efi vfat rw,relatime,fmask=022,dmask=0022,chodepage=437,iocharset=iso8859-1,shortname=mixed,utf8,errors=remount-ro 0 0" >> tempfstab' >> chroot.sh
-	echo 'cp tempfstab2 /etc/fstab' >> chroot.sh 
+	echo 'cp tempfstab /etc/fstab' >> chroot.sh 
 	echo 'xbps-install grub-x86_64-efi' >> chroot.sh
 	echo 'grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="Void"' >> chroot.sh 
 	echo 'xbps-reconfigure -fa' >> chroot.sh
