@@ -116,9 +116,9 @@ mkfs.ext4 $DISK2INSTALL"2"
 
 #MOUNT DISKS
 
-mount $($DISK2INSTALL"2") /mnt/
+mount $DISK2INSTALL"2" /mnt/
 mkdir -p /mnt/boot/efi/
-mount $($DISK2INSTALL"1") /mnt/boot/efi
+mount $DISK2INSTALL"1" /mnt/boot/efi
 
 #INSTALL BASE
 if [ "$PACKAGES" == "y" ]
