@@ -56,7 +56,7 @@ if [ "$ARCH" != "x86_64" ] && [ "$ARCH" != "x86_64-musl" ] && [ "$ARCH" != "i686
 fi
 
 echo ""
-echo "Locale? (en_US.UTF-8,en_GB.UTF-8,etc) 
+echo "Locale? (en_US.UTF-8,en_GB.UTF-8,etc)"
 printf "> "
 read LOCALEFORINST
 
@@ -100,6 +100,9 @@ fi
 
 echo "Jo mama"
 
+#INSTALL DEPS
+xbps-install -S parted
+
 #FORMAT DISKS
 
 umount $DISK2INSTALL
@@ -107,6 +110,9 @@ dd if=$DISK2INSTALL of=$DISK2INSTALL bs=512 count=1 conv=notrunc
 parted $DISK2INSTALL --script mklabel gpt
 parted $DISK2INSTALL --script mkpart primary fat32 1MB 512MB
 parted $DISK2INSTALL --script mkpart primary ext4 513MB 100%
+
+mkfs.vfat $DISK2INSTALL"1"
+mkfs.ext4 $DISK2INSTALL"2"
 
 #MOUNT DISKS
 
