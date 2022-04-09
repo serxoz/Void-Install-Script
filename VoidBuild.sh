@@ -138,19 +138,19 @@ cp /etc/resolv.conf /mnt/etc/
 #CHROOT
 if [ "$ARCH" == "x86_64" ]
 then 
-	echo $("echo" $HOSTNAMEFORINST ">> /etc/hostname") >> chroot.sh
-	echo $("echo KEYMAP=" $KEYMAPFORINST ">> /etc/rc.conf") >> chroot.sh
-	echo $("echo TIMEZONE=" $TIMEZONEFORINST ">> /etc/rc.conf") >> chroot.sh
-	echo $("echo" $LOCALEFORINST ">> /etc/default/libc-locales") >> chroot.sh
-	echo $("echo xbps-reconfigure -f glibc-locales") >> chroot.sh
-	echo $("echo" $ROOTFORINST "| passwd --stdin") >> chroot.sh
-	echo $("echo $(cat /proc/mounts | grep -v -e proc -e sys -e tmpfs -e pts ) >> tempfstab ") >> chroot.sh
-	echo $("echo $(cat tempfstab | grep /boot/efi | awk '$6=$6"2"') >> tempfstab2") >> chroot.sh 
-	echo $("echo $(cat tempfstab | grep ext4 | awk '$6=$6"1"') >> tempfstab2") >> chroot.sh 
-	echo $("mv tempfstab2 /etc/fstab") >> chroot.sh 
-	echo $("xbps-install grub-x86_64-efi") >> chroot.sh
-	echo $("grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="Void"") >> chroot.sh 
-	echo $("xbps-reconfigure -fa") >> chroot.sh
+	echo 'echo '$HOSTNAMEFORINST' >> /etc/hostname' >> chroot.sh
+	echo 'echo KEYMAP='$KEYMAPFORINST' >> /etc/rc.conf' >> chroot.sh
+	echo 'echo TIMEZONE='$TIMEZONEFORINST' >> /etc/rc.conf' >> chroot.sh
+	echo 'echo '$LOCALEFORINST' >> /etc/default/libc-locales' >> chroot.sh
+	echo 'xbps-reconfigure -f glibc-locales' >> chroot.sh
+	echo 'echo '$ROOTFORINST' | passwd --stdin' >> chroot.sh
+	echo 'echo $(cat /proc/mounts | grep -v -e proc -e sys -e tmpfs -e pts ) >> tempfstab ' >> chroot.sh
+	echo 'echo $(cat tempfstab | grep /boot/efi | awk \'$6=$6"2"\') >> tempfstab2' >> chroot.sh 
+	echo 'echo $(cat tempfstab | grep ext4 | awk \'$6=$6"1"\') >> tempfstab2' >> chroot.sh 
+	echo 'mv tempfstab2 /etc/fstab' >> chroot.sh 
+	echo 'xbps-install grub-x86_64-efi' >> chroot.sh
+	echo 'grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="Void"' >> chroot.sh 
+	echo 'xbps-reconfigure -fa' >> chroot.sh
 fi
 
 mv chroot.sh /mnt/
